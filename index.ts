@@ -12,23 +12,23 @@ app.use(express.json());
 
 const allowedOrigins = ["http://localhost:4200"];
 
-app.use(
-  cors({
-    origin: function (
-      origin: string | undefined,
-      callback: (err: Error | null, allow?: boolean) => void
-    ) {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      } else {
-        const msg = "The CORS policy does not allow access from this origin.";
-        return callback(new Error(msg), false);
-      }
-    },
-    credentials: true,
-  })
-);
+// app.use(
+//   cors({
+//     origin: function (
+//       origin: string | undefined,
+//       callback: (err: Error | null, allow?: boolean) => void
+//     ) {
+//       if (!origin) return callback(null, true);
+//       if (allowedOrigins.includes(origin)) {
+//         return callback(null, true);
+//       } else {
+//         const msg = "The CORS policy does not allow access from this origin.";
+//         return callback(new Error(msg), false);
+//       }
+//     },
+//     credentials: true,
+//   })
+// );
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
