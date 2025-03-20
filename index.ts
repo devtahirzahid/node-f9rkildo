@@ -1,16 +1,16 @@
-const express = require('express');
-const cors = require('cors');
-const bcrypt = require('bcryptjs');
-const joi = require('joi');
-import { Request, Response } from 'express';
+const express = require("express");
+const cors = require("cors");
+const bcrypt = require("bcryptjs");
+const joi = require("joi");
+import { Request, Response } from "express";
 
 const port = 3000;
 
 const app = express();
 
-// app.use(express.json());
+app.use(express.json());
 
-const allowedOrigins = ['https://angular-rzam41fg.stackblitz.io'];
+const allowedOrigins = ["http://localhost:4200"];
 
 app.use(
   cors({
@@ -22,7 +22,7 @@ app.use(
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       } else {
-        const msg = 'The CORS policy does not allow access from this origin.';
+        const msg = "The CORS policy does not allow access from this origin.";
         return callback(new Error(msg), false);
       }
     },
@@ -34,21 +34,21 @@ app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
 
-app.get('/', (req: Request, res: Response) => {
-  return res.status(200).json({ success: 'Backend is running 23' });
+app.get("/", (req: Request, res: Response) => {
+  return res.status(200).json({ success: "Backend is running 23" });
 });
 
 // Interfaces
 interface UserDto {
   username: string;
   email: string;
-  type: 'user' | 'admin';
+  type: "user" | "admin";
   password: string;
 }
 
 interface UserEntry {
   email: string;
-  type: 'user' | 'admin';
+  type: "user" | "admin";
   salt: string;
   passwordhash: string;
 }
@@ -57,6 +57,7 @@ const MEMORY_DB: Record<string, UserEntry> = {};
 
 // Helper functions
 function getUserByUsername(name: string): UserEntry | undefined {
+  console.log("Memory DB:", MEMORY_DB);
   return MEMORY_DB[name];
 }
 
@@ -70,7 +71,7 @@ function getUserByEmail(email: string): UserEntry | undefined {
 const userSchema = joi.object({
   username: joi.string().min(3).max(24).required(),
   email: joi.string().email().required(),
-  type: joi.string().valid('user', 'admin').required(),
+  type: joi.string().valid("user", "admin").required(),
   password: joi
     .string()
     .min(5)
@@ -80,26 +81,26 @@ const userSchema = joi.object({
 });
 
 // Register route
-app.post('/register', async (req: Request, res: Response) => {
-  console.log('Received a register request with body:', req.body);
+app.post("/register", async (req: Request, res: Response) => {
+  console.log("Received a register request with body:", req.body);
 
   const { error, value } = userSchema.validate(req.body);
 
   if (error) {
-    console.log('Validation error:', error.details[0].message);
+    console.log("Validation error:", error.details[0].message);
     return res.status(400).json({ error: error.details[0].message });
   }
 
   const { username, email, type, password }: UserDto = value;
 
   if (getUserByUsername(username)) {
-    console.log('Username already exists:', username);
-    return res.status(409).json({ error: 'Username already exists' });
+    console.log("Username already exists:", username);
+    return res.status(409).json({ error: "Username already exists" });
   }
 
   if (getUserByEmail(email)) {
-    console.log('Email already exists:', email);
-    return res.status(409).json({ error: 'Email already exists' });
+    console.log("Email already exists:", email);
+    return res.status(409).json({ error: "Email already exists" });
   }
 
   const salt = bcrypt.genSaltSync(10);
@@ -107,25 +108,25 @@ app.post('/register', async (req: Request, res: Response) => {
 
   MEMORY_DB[username] = { email, type, salt, passwordhash };
 
-  console.log('User registered successfully:', username);
-  return res.status(201).json({ message: 'User registered successfully' });
+  console.log("User registered successfully:", username);
+  return res.status(201).json({ message: "User registered successfully" });
 });
 
 // Login route
-app.post('/login', (req: Request, res: Response) => {
+app.post("/login", (req: Request, res: Response) => {
   const { username, password } = req.body;
 
   const user = getUserByUsername(username);
 
   if (!user) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+    return res.status(401).json({ error: "Invalid credentials" });
   }
 
   const isMatch = bcrypt.compareSync(password, user.passwordhash);
 
   if (!isMatch) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+    return res.status(401).json({ error: "Invalid credentials" });
   }
 
-  return res.status(200).json({ message: 'Login successful' });
+  return res.status(200).json({ message: "Login successful" });
 });
